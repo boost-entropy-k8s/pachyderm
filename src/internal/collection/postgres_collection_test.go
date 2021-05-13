@@ -20,7 +20,7 @@ func TestPostgresCollections(suite *testing.T) {
 		config := serviceenv.ConfigFromOptions(testutil.NewTestDBConfig(t))
 		options := []dbutil.Option{
 			dbutil.WithHostPort(config.PostgresServiceHost, config.PostgresServicePort),
-			dbutil.WithDBName(config.PostgresDBName),
+			dbutil.WithDBName(config.PostgresDB),
 		}
 
 		db, err := dbutil.NewDB(options...)
