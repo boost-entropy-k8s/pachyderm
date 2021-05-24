@@ -536,13 +536,19 @@ func (reg *registry) processJobRunning(ppj *pendingPipelineJob) error {
 						renewer.Remove(data.FilesetId)
 						if _, err := pachClient.PfsAPIClient.AddFileset(
 							pachClient.Ctx(),
-							&pfs.AddFilesetRequest{Commit: ppj.commitInfo.Commit},
+							&pfs.AddFilesetRequest{
+								Commit:    ppj.commitInfo.Commit,
+								FilesetId: data.OutputFilesetId,
+							},
 						); err != nil {
 							return grpcutil.ScrubGRPC(err)
 						}
 						if _, err := pachClient.PfsAPIClient.AddFileset(
 							pachClient.Ctx(),
-							&pfs.AddFilesetRequest{Commit: ppj.metaCommitInfo.Commit},
+							&pfs.AddFilesetRequest{
+								Commit:    ppj.metaCommitInfo.Commit,
+								FilesetId: data.MetaFilesetId,
+							},
 						); err != nil {
 							return grpcutil.ScrubGRPC(err)
 						}
