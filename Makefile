@@ -32,7 +32,7 @@ GORELDEBUG = #--debug # uncomment --debug for verbose goreleaser output
 # You can specify your own, but this is what CI uses
 TIMEOUT ?= 3600s
 CLUSTERS_REUSE ?= true
-PARALLELISM ?= 5
+PARALLELISM ?= 3
 
 install:
 	# GOBIN (default: GOPATH/bin) must be on your PATH to access these binaries:
@@ -85,6 +85,9 @@ release-docker-images:
 
 release-pachctl:
 	@goreleaser release -p 1 $(GORELSNAP) $(GORELDEBUG) --release-notes=$(CHLOGFILE) --rm-dist -f goreleaser/pachctl.yml
+
+release-mount-server:
+	@goreleaser release -p 1 $(GORELSNAP) $(GORELDEBUG) --release-notes=$(CHLOGFILE) --rm-dist -f goreleaser/mount-server.yml
 
 docker-build:
 	docker build -f etc/test-images/Dockerfile.testuser -t pachyderm/testuser:local .

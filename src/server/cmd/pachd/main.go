@@ -70,7 +70,9 @@ import (
 var mode string
 var readiness bool
 
-type bootstrapFunc func(context.Context) error
+type bootstrapper interface {
+	EnvBootstrap(context.Context) error
+}
 
 func init() {
 	flag.StringVar(&mode, "mode", "full", "Pachd currently supports four modes: full, enterprise, sidecar and paused. Full includes everything you need in a full pachd node. Enterprise runs the Enterprise Server. Sidecar runs only PFS, the Auth service, and a stripped-down version of PPS.  Paused runs all APIs other than PFS and PPS; it is intended to enable taking database backups.")
@@ -102,6 +104,53 @@ func main() {
 	default:
 		fmt.Printf("unrecognized mode: %s\n", mode)
 	}
+}
+
+func newInternalServer(authInterceptor *authmw.Interceptor, loggingInterceptor *loggingmw.LoggingInterceptor) (*grpcutil.Server, error) {
+	return grpcutil.NewServer(
+		context.Background(),
+		false,
+		grpc.ChainUnaryInterceptor(
+			errorsmw.UnaryServerInterceptor,
+			tracing.UnaryServerInterceptor(),
+			authInterceptor.InterceptUnary,
+			loggingInterceptor.UnaryServerInterceptor,
+		),
+		grpc.ChainStreamInterceptor(
+			errorsmw.StreamServerInterceptor,
+			tracing.StreamServerInterceptor(),
+			authInterceptor.InterceptStream,
+			loggingInterceptor.StreamServerInterceptor,
+		),
+	)
+}
+
+func newExternalServer(authInterceptor *authmw.Interceptor, loggingInterceptor *loggingmw.LoggingInterceptor) (*grpcutil.Server, error) {
+	return grpcutil.NewServer(
+		context.Background(),
+		true,
+		// Add an UnknownServiceHandler to catch the case where the user has a client with the wrong major version.
+		// Weirdly, GRPC seems to run the interceptor stack before the UnknownServiceHandler, so this is never called
+		// (because the version_middleware interceptor throws an error, or the auth interceptor does).
+		grpc.UnknownServiceHandler(func(srv interface{}, stream grpc.ServerStream) error {
+			method, _ := grpc.MethodFromServerStream(stream)
+			return errors.Errorf("unknown service %v", method)
+		}),
+		grpc.ChainUnaryInterceptor(
+			errorsmw.UnaryServerInterceptor,
+			version_middleware.UnaryServerInterceptor,
+			tracing.UnaryServerInterceptor(),
+			authInterceptor.InterceptUnary,
+			loggingInterceptor.UnaryServerInterceptor,
+		),
+		grpc.ChainStreamInterceptor(
+			errorsmw.StreamServerInterceptor,
+			version_middleware.StreamServerInterceptor,
+			tracing.StreamServerInterceptor(),
+			authInterceptor.InterceptStream,
+			loggingInterceptor.StreamServerInterceptor,
+		),
+	)
 }
 
 func doReadinessCheck(config interface{}) error {
@@ -163,31 +212,7 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 	// Setup External Pachd GRPC Server.
 	authInterceptor := authmw.NewInterceptor(env.AuthServer)
 	loggingInterceptor := loggingmw.NewLoggingInterceptor(env.Logger(), loggingmw.WithLogFormat(env.Config().LogFormat))
-	externalServer, err := grpcutil.NewServer(
-		context.Background(),
-		true,
-		// Add an UnknownServiceHandler to catch the case where the user has a client with the wrong major version.
-		// Weirdly, GRPC seems to run the interceptor stack before the UnknownServiceHandler, so this is never called
-		// (because the version_middleware interceptor throws an error, or the auth interceptor does).
-		grpc.UnknownServiceHandler(func(srv interface{}, stream grpc.ServerStream) error {
-			method, _ := grpc.MethodFromServerStream(stream)
-			return errors.Errorf("unknown service %v", method)
-		}),
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			version_middleware.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			version_middleware.StreamServerInterceptor,
-			tracing.StreamServerInterceptor(),
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
+	externalServer, err := newExternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
@@ -195,7 +220,7 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 	if err := logGRPCServerSetup("External Enterprise Server", func() error {
 		txnEnv := txnenv.New()
 		if err := logGRPCServerSetup("License API", func() error {
-			licenseAPIServer, _, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
+			licenseAPIServer, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
 			if err != nil {
 				return err
 			}
@@ -260,11 +285,12 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 		}
 
 		if err := logGRPCServerSetup("Identity API", func() error {
-			idAPIServer, _ := identity_server.NewIdentityServer(
+			idAPIServer := identity_server.NewIdentityServer(
 				identity_server.EnvFromServiceEnv(env),
 				true,
 			)
 			identityclient.RegisterAPIServer(externalServer.Server, idAPIServer)
+			env.SetIdentityServer(idAPIServer)
 			return nil
 		}); err != nil {
 			return err
@@ -280,35 +306,49 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 	}
 
 	// Setup Internal Pachd GRPC Server.
-	internalServer, err := grpcutil.NewServer(
-		context.Background(),
-		false,
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
+	internalServer, err := newInternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
 
-	var bootstrappers []bootstrapFunc
+	var bootstrappers []bootstrapper
 	if err := logGRPCServerSetup("Internal Enterprise Server", func() error {
 		txnEnv := txnenv.New()
 		if err := logGRPCServerSetup("License API", func() error {
-			licenseAPIServer, bootstrap, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
+			licenseAPIServer, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
 			if err != nil {
 				return err
 			}
 			licenseclient.RegisterAPIServer(internalServer.Server, licenseAPIServer)
-			bootstrappers = append(bootstrappers, bootstrap)
+			bootstrappers = append(bootstrappers, licenseAPIServer)
+			return nil
+		}); err != nil {
+			return err
+		}
+		if err := logGRPCServerSetup("Enterprise API", func() error {
+			e := eprsserver.EnvFromServiceEnv(env, path.Join(env.Config().EtcdPrefix, env.Config().EnterpriseEtcdPrefix), txnEnv)
+			enterpriseAPIServer, err := eprsserver.NewEnterpriseServer(
+				e,
+				false,
+			)
+			if err != nil {
+				return err
+			}
+			eprsclient.RegisterAPIServer(internalServer.Server, enterpriseAPIServer)
+			env.SetEnterpriseServer(enterpriseAPIServer)
+			bootstrappers = append(bootstrappers, enterpriseAPIServer)
+			return nil
+		}); err != nil {
+			return err
+		}
+		if err := logGRPCServerSetup("Identity API", func() error {
+			idAPIServer := identity_server.NewIdentityServer(
+				identity_server.EnvFromServiceEnv(env),
+				false,
+			)
+			identityclient.RegisterAPIServer(internalServer.Server, idAPIServer)
+			env.SetIdentityServer(idAPIServer)
+			bootstrappers = append(bootstrappers, idAPIServer)
 			return nil
 		}); err != nil {
 			return err
@@ -325,7 +365,7 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 			}
 			authclient.RegisterAPIServer(internalServer.Server, authAPIServer)
 			env.SetAuthServer(authAPIServer)
-			bootstrappers = append(bootstrappers, authAPIServer.EnvBootstrap)
+			bootstrappers = append(bootstrappers, authAPIServer)
 			return nil
 		}); err != nil {
 			return err
@@ -338,44 +378,14 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 		}); err != nil {
 			return err
 		}
-
-		if err := logGRPCServerSetup("Enterprise API", func() error {
-			e := eprsserver.EnvFromServiceEnv(env, path.Join(env.Config().EtcdPrefix, env.Config().EnterpriseEtcdPrefix), txnEnv)
-			enterpriseAPIServer, err := eprsserver.NewEnterpriseServer(
-				e,
-				false,
-			)
-			if err != nil {
-				return err
-			}
-			eprsclient.RegisterAPIServer(internalServer.Server, enterpriseAPIServer)
-			env.SetEnterpriseServer(enterpriseAPIServer)
-			return nil
-		}); err != nil {
-			return err
-		}
-
 		if err := logGRPCServerSetup("Admin API", func() error {
 			adminclient.RegisterAPIServer(internalServer.Server, adminserver.NewAPIServer(adminserver.EnvFromServiceEnv(env)))
 			return nil
 		}); err != nil {
 			return err
 		}
-
 		if err := logGRPCServerSetup("Version API", func() error {
 			versionpb.RegisterAPIServer(internalServer.Server, version.NewAPIServer(version.Version, version.APIServerOptions{}))
-			return nil
-		}); err != nil {
-			return err
-		}
-
-		if err := logGRPCServerSetup("Identity API", func() error {
-			idAPIServer, bootstrap := identity_server.NewIdentityServer(
-				identity_server.EnvFromServiceEnv(env),
-				false,
-			)
-			identityclient.RegisterAPIServer(internalServer.Server, idAPIServer)
-			bootstrappers = append(bootstrappers, bootstrap)
 			return nil
 		}); err != nil {
 			return err
@@ -401,8 +411,8 @@ func doEnterpriseMode(config interface{}) (retErr error) {
 		return internalServer.Wait()
 	})
 	for _, b := range bootstrappers {
-		if err := b(context.Background()); err != nil {
-			return err
+		if err := b.EnvBootstrap(context.Background()); err != nil {
+			return errors.EnsureStack(err)
 		}
 	}
 	return <-errChan
@@ -446,22 +456,7 @@ func doSidecarMode(config interface{}) (retErr error) {
 	}
 	authInterceptor := authmw.NewInterceptor(env.AuthServer)
 	loggingInterceptor := loggingmw.NewLoggingInterceptor(env.Logger())
-	server, err := grpcutil.NewServer(
-		context.Background(),
-		false,
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			tracing.StreamServerInterceptor(),
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
+	server, err := newInternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
@@ -631,39 +626,14 @@ func doFullMode(config interface{}) (retErr error) {
 	// Setup External Pachd GRPC Server.
 	authInterceptor := authmw.NewInterceptor(env.AuthServer)
 	loggingInterceptor := loggingmw.NewLoggingInterceptor(env.Logger())
-	externalServer, err := grpcutil.NewServer(
-		ctx,
-		true,
-		// Add an UnknownServiceHandler to catch the case where the user has a client with the wrong major version.
-		// Weirdly, GRPC seems to run the interceptor stack before the UnknownServiceHandler, so this is never called
-		// (because the version_middleware interceptor throws an error, or the auth interceptor does).
-		grpc.UnknownServiceHandler(func(srv interface{}, stream grpc.ServerStream) error {
-			method, _ := grpc.MethodFromServerStream(stream)
-			return errors.Errorf("unknown service %v", method)
-		}),
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			version_middleware.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			version_middleware.StreamServerInterceptor,
-			tracing.StreamServerInterceptor(),
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
-
+	externalServer, err := newExternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
 	if err := logGRPCServerSetup("External Pachd", func() error {
 		txnEnv := txnenv.New()
 		if err := logGRPCServerSetup("License API", func() error {
-			licenseAPIServer, _, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
+			licenseAPIServer, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
 			if err != nil {
 				return err
 			}
@@ -688,11 +658,12 @@ func doFullMode(config interface{}) (retErr error) {
 		}
 		if !env.Config().EnterpriseMember {
 			if err := logGRPCServerSetup("Identity API", func() error {
-				idAPIServer, _ := identity_server.NewIdentityServer(
+				idAPIServer := identity_server.NewIdentityServer(
 					identity_server.EnvFromServiceEnv(env),
 					true,
 				)
 				identityclient.RegisterAPIServer(externalServer.Server, idAPIServer)
+				env.SetIdentityServer(idAPIServer)
 				return nil
 			}); err != nil {
 				return err
@@ -808,23 +779,9 @@ func doFullMode(config interface{}) (retErr error) {
 	}); err != nil {
 		return err
 	}
-	var bootstrappers []bootstrapFunc
+	var bootstrappers []bootstrapper
 	// Setup Internal Pachd GRPC Server.
-	internalServer, err := grpcutil.NewServer(
-		ctx,
-		false,
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
+	internalServer, err := newInternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
@@ -861,56 +818,12 @@ func doFullMode(config interface{}) (retErr error) {
 			return err
 		}
 		if err := logGRPCServerSetup("License API", func() error {
-			licenseAPIServer, bootstrap, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
+			licenseAPIServer, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
 			if err != nil {
 				return err
 			}
 			licenseclient.RegisterAPIServer(internalServer.Server, licenseAPIServer)
-			bootstrappers = append(bootstrappers, bootstrap)
-			return nil
-		}); err != nil {
-			return err
-		}
-		if err := logGRPCServerSetup("Auth API", func() error {
-			authAPIServer, err := authserver.NewAuthServer(
-				authserver.EnvFromServiceEnv(env, txnEnv),
-				false,
-				requireNoncriticalServers,
-				true,
-			)
-			if err != nil {
-				return err
-			}
-			authclient.RegisterAPIServer(internalServer.Server, authAPIServer)
-			env.SetAuthServer(authAPIServer)
-			bootstrappers = append(bootstrappers, authAPIServer.EnvBootstrap)
-			return nil
-		}); err != nil {
-			return err
-		}
-		if !env.Config().EnterpriseMember {
-			if err := logGRPCServerSetup("Identity API", func() error {
-				idAPIServer, bootstrap := identity_server.NewIdentityServer(
-					identity_server.EnvFromServiceEnv(env),
-					false,
-				)
-				identityclient.RegisterAPIServer(internalServer.Server, idAPIServer)
-				bootstrappers = append(bootstrappers, bootstrap)
-				return nil
-			}); err != nil {
-				return err
-			}
-		}
-		var transactionAPIServer txnserver.APIServer
-		if err := logGRPCServerSetup("Transaction API", func() error {
-			transactionAPIServer, err = txnserver.NewAPIServer(
-				env,
-				txnEnv,
-			)
-			if err != nil {
-				return err
-			}
-			transactionclient.RegisterAPIServer(internalServer.Server, transactionAPIServer)
+			bootstrappers = append(bootstrappers, licenseAPIServer)
 			return nil
 		}); err != nil {
 			return err
@@ -929,8 +842,54 @@ func doFullMode(config interface{}) (retErr error) {
 			if err != nil {
 				return err
 			}
+			bootstrappers = append(bootstrappers, enterpriseAPIServer)
 			eprsclient.RegisterAPIServer(internalServer.Server, enterpriseAPIServer)
 			env.SetEnterpriseServer(enterpriseAPIServer)
+			return nil
+		}); err != nil {
+			return err
+		}
+		if !env.Config().EnterpriseMember {
+			if err := logGRPCServerSetup("Identity API", func() error {
+				idAPIServer := identity_server.NewIdentityServer(
+					identity_server.EnvFromServiceEnv(env),
+					false,
+				)
+				identityclient.RegisterAPIServer(internalServer.Server, idAPIServer)
+				env.SetIdentityServer(idAPIServer)
+				bootstrappers = append(bootstrappers, idAPIServer)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		if err := logGRPCServerSetup("Auth API", func() error {
+			authAPIServer, err := authserver.NewAuthServer(
+				authserver.EnvFromServiceEnv(env, txnEnv),
+				false,
+				requireNoncriticalServers,
+				true,
+			)
+			if err != nil {
+				return err
+			}
+			authclient.RegisterAPIServer(internalServer.Server, authAPIServer)
+			env.SetAuthServer(authAPIServer)
+			bootstrappers = append(bootstrappers, authAPIServer)
+			return nil
+		}); err != nil {
+			return err
+		}
+		var transactionAPIServer txnserver.APIServer
+		if err := logGRPCServerSetup("Transaction API", func() error {
+			transactionAPIServer, err = txnserver.NewAPIServer(
+				env,
+				txnEnv,
+			)
+			if err != nil {
+				return err
+			}
+			transactionclient.RegisterAPIServer(internalServer.Server, transactionAPIServer)
 			return nil
 		}); err != nil {
 			return err
@@ -1014,8 +973,8 @@ func doFullMode(config interface{}) (retErr error) {
 		log.Println("gRPC server gracefully stopped")
 	}(interruptChan)
 	for _, b := range bootstrappers {
-		if err := b(context.Background()); err != nil {
-			return err
+		if err := b.EnvBootstrap(context.Background()); err != nil {
+			return errors.EnsureStack(err)
 		}
 	}
 	return <-errChan
@@ -1075,32 +1034,7 @@ func doPausedMode(config interface{}) (retErr error) {
 	// Setup External Pachd GRPC Server.
 	authInterceptor := authmw.NewInterceptor(env.AuthServer)
 	loggingInterceptor := loggingmw.NewLoggingInterceptor(env.Logger())
-	externalServer, err := grpcutil.NewServer(
-		ctx,
-		true,
-		// Add an UnknownServiceHandler to catch the case where the user has a client with the wrong major version.
-		// Weirdly, GRPC seems to run the interceptor stack before the UnknownServiceHandler, so this is never called
-		// (because the version_middleware interceptor throws an error, or the auth interceptor does).
-		grpc.UnknownServiceHandler(func(srv interface{}, stream grpc.ServerStream) error {
-			method, _ := grpc.MethodFromServerStream(stream)
-			return errors.Errorf("unknown service %v", method)
-		}),
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			version_middleware.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			version_middleware.StreamServerInterceptor,
-			tracing.StreamServerInterceptor(),
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
-
+	externalServer, err := newExternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
@@ -1152,17 +1086,18 @@ func doPausedMode(config interface{}) (retErr error) {
 			return err
 		}
 		if err := logGRPCServerSetup("Identity API", func() error {
-			idAPIServer, _ := identity_server.NewIdentityServer(
+			idAPIServer := identity_server.NewIdentityServer(
 				identity_server.EnvFromServiceEnv(env),
 				true,
 			)
 			identityclient.RegisterAPIServer(externalServer.Server, idAPIServer)
+			env.SetIdentityServer(idAPIServer)
 			return nil
 		}); err != nil {
 			return err
 		}
 		if err := logGRPCServerSetup("License API", func() error {
-			licenseAPIServer, _, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
+			licenseAPIServer, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
 			if err != nil {
 				return err
 			}
@@ -1194,21 +1129,7 @@ func doPausedMode(config interface{}) (retErr error) {
 		return err
 	}
 	// Setup Internal Pachd GRPC Server.
-	internalServer, err := grpcutil.NewServer(
-		ctx,
-		false,
-		grpc.ChainUnaryInterceptor(
-			errorsmw.UnaryServerInterceptor,
-			tracing.UnaryServerInterceptor(),
-			authInterceptor.InterceptUnary,
-			loggingInterceptor.UnaryServerInterceptor,
-		),
-		grpc.ChainStreamInterceptor(
-			errorsmw.StreamServerInterceptor,
-			authInterceptor.InterceptStream,
-			loggingInterceptor.StreamServerInterceptor,
-		),
-	)
+	internalServer, err := newInternalServer(authInterceptor, loggingInterceptor)
 	if err != nil {
 		return err
 	}
@@ -1282,18 +1203,19 @@ func doPausedMode(config interface{}) (retErr error) {
 		}
 		if !env.Config().EnterpriseMember {
 			if err := logGRPCServerSetup("Identity API", func() error {
-				idAPIServer, _ := identity_server.NewIdentityServer(
+				idAPIServer := identity_server.NewIdentityServer(
 					identity_server.EnvFromServiceEnv(env),
 					false,
 				)
 				identityclient.RegisterAPIServer(internalServer.Server, idAPIServer)
+				env.SetIdentityServer(idAPIServer)
 				return nil
 			}); err != nil {
 				return err
 			}
 		}
 		if err := logGRPCServerSetup("License API", func() error {
-			licenseAPIServer, _, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
+			licenseAPIServer, err := licenseserver.New(licenseserver.EnvFromServiceEnv(env))
 			if err != nil {
 				return err
 			}
