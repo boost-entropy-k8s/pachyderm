@@ -165,7 +165,7 @@ If the job fails, the output commit will not be populated with data.`,
 				if err != nil {
 					return err
 				}
-				jobInfo, err := client.WaitProjectJob(pfs.DefaultProjectName, job.Pipeline.Name, job.ID, true)
+				jobInfo, err := client.WaitProjectJob(job.Pipeline.Project.GetName(), job.Pipeline.Name, job.ID, true)
 				if err != nil {
 					return errors.Wrap(err, "error from InspectJob")
 				}
@@ -882,6 +882,21 @@ All jobs created by a pipeline will create commits in the pipeline's output repo
 				fmt.Println("Pipeline unchanged, no update will be performed.")
 				return nil
 			}
+			// May not change the project name, but if it is omitted
+			// then it is considered unchanged.
+			project := request.Pipeline.GetProject()
+			projectName := project.GetName()
+			if projectName != "" && projectName != pipelineInfo.Pipeline.GetProject().GetName() {
+				return errors.New("may not change project name")
+			}
+			request.Pipeline.Project = pipelineInfo.Pipeline.GetProject() // in case of empty project
+			// Likewise, may not change the pipeline name, but if it
+			// is omitted then it is considered unchanged.
+			pipelineName := request.Pipeline.GetName()
+			if pipelineName != "" && pipelineName != pipelineInfo.Pipeline.GetName() {
+				return errors.New("may not change pipeline name")
+			}
+			request.Pipeline.Name = pipelineInfo.Pipeline.GetName() // in case of empty pipeline name
 			request.Update = true
 			request.Reprocess = reprocess
 			return txncmds.WithActiveTransaction(client, func(txClient *pachdclient.APIClient) error {

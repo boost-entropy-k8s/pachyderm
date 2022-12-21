@@ -44,6 +44,7 @@ type Env struct {
 	Reporter          *metrics.Reporter
 	BackgroundContext context.Context
 	Config            serviceenv.Configuration
+	PachwInSidecar    bool
 }
 
 func EnvFromServiceEnv(senv serviceenv.ServiceEnv, txnEnv *txnenv.TransactionEnv, reporter *metrics.Reporter) Env {
@@ -65,6 +66,7 @@ func EnvFromServiceEnv(senv serviceenv.ServiceEnv, txnEnv *txnenv.TransactionEnv
 		Reporter:          reporter,
 		BackgroundContext: pctx.Child(senv.Context(), "PPS"),
 		Config:            *senv.Config(),
+		PachwInSidecar:    senv.Config().PachwInSidecars,
 	}
 }
 
@@ -76,7 +78,7 @@ func NewAPIServer(env Env) (ppsiface.APIServer, error) {
 	}
 	apiServer := (srv).(*apiServer)
 	if env.Config.EnablePreflightChecks {
-		apiServer.validateKube(pctx.Child(apiServer.env.BackgroundContext, "validateKube"))
+		apiServer.validateKube(env.BackgroundContext)
 	} else {
 		log.Error(env.BackgroundContext, "Preflight checks are disabled. This is not recommended.")
 	}
