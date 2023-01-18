@@ -113,6 +113,74 @@ func finfosToPaths(finfos []*pfs.FileInfo) (paths []string) {
 func TestPFS(suite *testing.T) {
 	suite.Parallel()
 
+	suite.Run("WalkFileTest", func(t *testing.T) {
+		t.Parallel()
+		ctx := pctx.TestContext(t)
+		env := realenv.NewRealEnv(ctx, t, dockertestenv.NewTestDBConfig(t))
+
+		repo := "test"
+		require.NoError(t, env.PachClient.CreateProjectRepo(pfs.DefaultProjectName, repo))
+
+		commit1, err := env.PachClient.StartProjectCommit(pfs.DefaultProjectName, repo, "master")
+		require.NoError(t, err)
+
+		require.NoError(t, env.PachClient.PutFile(commit1, "/dir/dir1/file1.1", &bytes.Buffer{}))
+		require.NoError(t, env.PachClient.PutFile(commit1, "/dir/dir1/file1.2", &bytes.Buffer{}))
+		require.NoError(t, env.PachClient.PutFile(commit1, "/dir/dir2/file2.1", &bytes.Buffer{}))
+		require.NoError(t, env.PachClient.PutFile(commit1, "/dir/dir2/file2.2", &bytes.Buffer{}))
+		require.NoError(t, env.PachClient.PutFile(commit1, "/dir/dir3/file3.1", &bytes.Buffer{}))
+		require.NoError(t, env.PachClient.PutFile(commit1, "/dir/dir3/file3.2", &bytes.Buffer{}))
+
+		require.NoError(t, finishCommit(env.PachClient, repo, commit1.Branch.Name, commit1.ID))
+		// should list all files including directories and root
+		var fis []*pfs.FileInfo
+		require.NoError(t, env.PachClient.WalkFile(commit1, "/", func(fi *pfs.FileInfo) error {
+			fis = append(fis, fi)
+			return nil
+		}))
+		require.Equal(t, 11, len(fis))
+
+		request := &pfs.WalkFileRequest{File: commit1.NewFile("/dir"), Number: 4}
+		walkFileClient, err := env.PachClient.PfsAPIClient.WalkFile(env.PachClient.Ctx(), request)
+		require.NoError(t, err)
+		fis, err = clientsdk.WalkFile(walkFileClient)
+		require.NoError(t, err)
+		require.Equal(t, 4, len(fis))
+		require.ElementsEqual(t, []string{"/dir/", "/dir/dir1/", "/dir/dir1/file1.1", "/dir/dir1/file1.2"}, finfosToPaths(fis))
+
+		lastFilePath := fis[3].File.Path
+		request = &pfs.WalkFileRequest{File: commit1.NewFile("/dir"), PaginationMarker: commit1.NewFile(lastFilePath)}
+		walkFileClient, err = env.PachClient.PfsAPIClient.WalkFile(env.PachClient.Ctx(), request)
+		require.NoError(t, err)
+		fis, err = clientsdk.WalkFile(walkFileClient)
+		require.NoError(t, err)
+		require.Equal(t, 7, len(fis))
+
+		request = &pfs.WalkFileRequest{File: commit1.NewFile("/dir"), Number: 2, Reverse: true}
+		walkFileClient, err = env.PachClient.PfsAPIClient.WalkFile(env.PachClient.Ctx(), request)
+		require.NoError(t, err)
+		fis, err = clientsdk.WalkFile(walkFileClient)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(fis))
+		require.ElementsEqual(t, []string{"/dir/dir3/file3.1", "/dir/dir3/file3.2"}, finfosToPaths(fis))
+		require.Equal(t, true, fis[0].File.Path > fis[1].File.Path)
+
+		request = &pfs.WalkFileRequest{File: commit1.NewFile("/dir"), Reverse: true}
+		walkFileClient, err = env.PachClient.PfsAPIClient.WalkFile(env.PachClient.Ctx(), request)
+		require.NoError(t, err)
+		fis, err = clientsdk.WalkFile(walkFileClient)
+		require.YesError(t, err)
+
+		request = &pfs.WalkFileRequest{File: commit1.NewFile("/dir"), PaginationMarker: commit1.NewFile("/dir/dir1/file1.2"), Number: 3, Reverse: true}
+		walkFileClient, err = env.PachClient.PfsAPIClient.WalkFile(env.PachClient.Ctx(), request)
+		require.NoError(t, err)
+		fis, err = clientsdk.WalkFile(walkFileClient)
+		require.NoError(t, err)
+		require.Equal(t, 3, len(fis))
+		require.ElementsEqual(t, []string{"/dir/dir1/file1.1", "/dir/dir1/", "/dir/"}, finfosToPaths(fis))
+
+	})
+
 	suite.Run("ListFileTest", func(t *testing.T) {
 		t.Parallel()
 		ctx := pctx.TestContext(t)
@@ -190,6 +258,7 @@ func TestPFS(suite *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, len(fis))
 		require.ElementsEqual(t, []string{"/dir1/file1.1", "/dir1/file1.2"}, finfosToPaths(fis))
+		require.Equal(t, true, fis[0].File.Path > fis[1].File.Path)
 	})
 
 	suite.Run("ListCommitStartedTime", func(t *testing.T) {
@@ -1224,13 +1293,13 @@ func TestPFS(suite *testing.T) {
 			untouchedRepos = append(untouchedRepos, untouchedRepo)
 		}
 
-		// DeleteRepos with no projects should return an error.
+		// DeleteRepos with no projects should not return an error.
 		_, err = env.PachClient.PfsAPIClient.DeleteRepos(ctx, &pfs.DeleteReposRequest{})
-		require.YesError(t, err)
+		require.NoError(t, err)
 
-		// DeleteRepos with a non-nil, zero-length list of projects should still error.
+		// DeleteRepos with a non-nil, zero-length list of projects should also not error.
 		_, err = env.PachClient.PfsAPIClient.DeleteRepos(ctx, &pfs.DeleteReposRequest{Projects: make([]*pfs.Project, 0)})
-		require.YesError(t, err)
+		require.NoError(t, err)
 
 		// DeleteRepos with an invalid project should not error because
 		// there will simply be no repos to delete.
@@ -1266,6 +1335,24 @@ func TestPFS(suite *testing.T) {
 				t.Errorf("repo %v not found in repos %v", repo.String(), repos)
 			}
 		}
+
+		// DeleteRepos with all set should delete every single repo.
+		resp, err = env.PachClient.PfsAPIClient.DeleteRepos(ctx, &pfs.DeleteReposRequest{All: true})
+		require.NoError(t, err)
+		require.Len(t, resp.Repos, len(untouchedRepos))
+
+		repoStream, err = env.PachClient.PfsAPIClient.ListRepo(ctx, &pfs.ListRepoRequest{})
+		require.NoError(t, err)
+		var count int
+		for {
+			_, err := repoStream.Recv()
+			if err == io.EOF {
+				break
+			}
+			require.NoError(t, err)
+			count++
+		}
+		require.Equal(t, count, 0)
 	})
 
 	suite.Run("InspectCommit", func(t *testing.T) {
