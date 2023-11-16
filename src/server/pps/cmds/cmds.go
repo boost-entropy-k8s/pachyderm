@@ -918,6 +918,62 @@ func Cmds(mainCtx context.Context, pachCtx *config.Context, pachctlCfg *pachctl.
 	runCron.Flags().StringVar(&project, "project", project, "Specify the project (by name) containing the cron pipeline.")
 	commands = append(commands, cmdutil.CreateAlias(runCron, "run cron"))
 
+	checkStatus := &cobra.Command{
+		Use:   "{{alias}}",
+		Short: "Check the status of pipelines within a project.",
+		Long:  "Check the status of pipelines within a project.",
+		Example: "\t- {{alias}} \n" +
+			"\t- {{alias}} --project bar \n",
+		Run: cmdutil.RunMinimumArgs(0, func(args []string) (retErr error) {
+			client, err := pachctlCfg.NewOnUserMachine(mainCtx, false)
+			if err != nil {
+				return err
+			}
+			filter := &pfs.Project{Name: project}
+			if allProjects {
+				filter = nil
+			}
+			defer client.Close()
+			checkStatusClient, err := client.PpsAPIClient.CheckStatus(
+				client.Ctx(),
+				&pps.CheckStatusRequest{
+					Context: &pps.CheckStatusRequest_Project{
+						Project: filter,
+					},
+				},
+			)
+			if err != nil {
+				return errors.Wrapf(err, "error while attempting to check status of project %s", project)
+			}
+			writer := tabwriter.NewWriter(os.Stdout, pretty.CheckStatusHeader)
+			for {
+				res, err := checkStatusClient.Recv()
+				if err != nil {
+					if errors.Is(err, io.EOF) {
+						return nil
+					}
+					return errors.Wrapf(err, "error receiving status for project %s", project)
+				}
+				if raw {
+					return errors.EnsureStack(cmdutil.Encoder(output, os.Stdout).EncodeProto(res))
+				} else if output != "" {
+					return errors.New("cannot set --output (-o) without --raw")
+				}
+				pretty.PrintCheckStatus(writer, res)
+				writer.Flush()
+			}
+		}),
+	}
+	checkStatus.Flags().StringVar(&project, "project", project, "Specify the project (by name) containing the pipeline.")
+	checkStatus.Flags().BoolVar(&raw, "raw", false, "Specify results should only return log messages verbatim from server.")
+	checkStatus.Flags().BoolVarP(&allProjects, "all-projects", "A", false, "Show pipeline status form all projects.")
+	check := &cobra.Command{
+		Short: "Check the status of pipelines within a project.",
+		Long:  "Check the status of pipelines within a project.",
+	}
+	commands = append(commands, cmdutil.CreateAlias(check, "check"))
+	commands = append(commands, cmdutil.CreateAlias(checkStatus, "check status"))
+
 	inspectPipeline := &cobra.Command{
 		Use:   "{{alias}} <pipeline>",
 		Short: "Return info about a pipeline.",
@@ -1623,6 +1679,12 @@ func Cmds(mainCtx context.Context, pachCtx *config.Context, pachctlCfg *pachctl.
 	rerunPipeline.Flags().StringVar(&project, "project", project, "Specify the project (by name) containing project")
 	commands = append(commands, cmdutil.CreateAlias(rerunPipeline, "rerun pipeline"))
 
+	defaultsDocs := &cobra.Command{
+		Short: "Docs for defaults.",
+		Long:  `Defaults provide default values for certain requests, e.g. when creating a pipeline.`,
+	}
+	commands = append(commands, cmdutil.CreateDocsAliases(defaultsDocs, "defaults", " defaults", "default"))
+
 	var cluster bool
 	inspectDefaults := &cobra.Command{
 		Use:   "{{alias}} [--cluster | --project PROJECT]",
@@ -1657,7 +1719,7 @@ func Cmds(mainCtx context.Context, pachCtx *config.Context, pachctlCfg *pachctl.
 	}
 	inspectDefaults.Flags().BoolVar(&cluster, "cluster", false, "Inspect cluster defaults.")
 	inspectDefaults.Flags().StringVar(&project, "project", project, "Inspect project defaults.")
-	commands = append(commands, cmdutil.CreateAliases(inspectDefaults, "inspect defaults"))
+	commands = append(commands, cmdutil.CreateAliases(inspectDefaults, "inspect defaults", "default"))
 
 	var pathname string
 	var regenerate bool
@@ -1688,7 +1750,7 @@ func Cmds(mainCtx context.Context, pachCtx *config.Context, pachctlCfg *pachctl.
 	createDefaults.Flags().StringVarP(&pathname, "file", "f", "-", "A JSON file containing cluster defaults.  \"-\" reads from stdin (the default behavior.)")
 	createDefaults.Flags().BoolVar(&dryRun, "dry-run", false, "Do not actually create defaults.")
 	createDefaults.Flags().StringVar(&project, "project", project, "Create project defaults.")
-	commands = append(commands, cmdutil.CreateAliases(createDefaults, "create defaults"))
+	commands = append(commands, cmdutil.CreateAliases(createDefaults, "create defaults", "default"))
 
 	deleteDefaults := &cobra.Command{
 		Use:   "{{alias}} [--cluster | --project PROJECT]",
@@ -1711,7 +1773,7 @@ func Cmds(mainCtx context.Context, pachCtx *config.Context, pachctlCfg *pachctl.
 	deleteDefaults.Flags().BoolVar(&reprocess, "reprocess", false, "Reprocess regenerated pipelines.  Implies --regenerate")
 	deleteDefaults.Flags().BoolVar(&dryRun, "dry-run", false, "Do not actually delete defaults.")
 	deleteDefaults.Flags().StringVar(&project, "project", project, "Delete project defaults.")
-	commands = append(commands, cmdutil.CreateAliases(deleteDefaults, "delete defaults"))
+	commands = append(commands, cmdutil.CreateAliases(deleteDefaults, "delete defaults", "default"))
 
 	updateDefaults := &cobra.Command{
 		Use:   "{{alias}} [--cluster | --project PROJECT]",
@@ -1739,7 +1801,7 @@ func Cmds(mainCtx context.Context, pachCtx *config.Context, pachctlCfg *pachctl.
 	updateDefaults.Flags().BoolVar(&reprocess, "reprocess", false, "Reprocess regenerated pipelines.  Implies --regenerate.")
 	updateDefaults.Flags().BoolVar(&dryRun, "dry-run", false, "Do not actually update defaults.")
 	updateDefaults.Flags().StringVar(&project, "project", project, "Update project defaults.")
-	commands = append(commands, cmdutil.CreateAliases(updateDefaults, "update defaults"))
+	commands = append(commands, cmdutil.CreateAliases(updateDefaults, "update defaults", "default"))
 
 	return commands
 }
