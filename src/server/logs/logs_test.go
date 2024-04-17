@@ -3,7 +3,9 @@ package logs_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -87,7 +89,8 @@ func TestGetLogsHint(t *testing.T) {
 
 			// GetLogs without a hint request should not return hints.
 			publisher = new(testPublisher)
-			require.NoError(t, ls.GetLogs(ctx, &logs.GetLogsRequest{LogFormat: logs.LogFormat_LOG_FORMAT_VERBATIM_WITH_TIMESTAMP}, publisher), "GetLogs should succeed")
+
+			require.NoError(t, ls.GetLogs(ctx, &logs.GetLogsRequest{}, publisher), "GetLogs should succeed")
 			for _, r := range publisher.responses {
 				_, ok := r.ResponseType.(*logs.GetLogsResponse_PagingHint)
 				require.False(t, ok, "paging hints should not be returned when unasked for")
@@ -97,7 +100,6 @@ func TestGetLogsHint(t *testing.T) {
 			// GetLogs with a hint request should return a hint.
 			publisher = new(testPublisher)
 			require.NoError(t, ls.GetLogs(ctx, &logs.GetLogsRequest{
-				LogFormat:      logs.LogFormat_LOG_FORMAT_VERBATIM_WITH_TIMESTAMP,
 				WantPagingHint: true,
 			}, publisher), "GetLogs must succeed")
 			require.True(t, len(publisher.responses) > 0, "there must be at least one response")
@@ -115,7 +117,6 @@ func TestGetLogsHint(t *testing.T) {
 			until := time.Now()
 			from := until.Add(-1 * time.Second)
 			require.NoError(t, ls.GetLogs(ctx, &logs.GetLogsRequest{
-				LogFormat:      logs.LogFormat_LOG_FORMAT_VERBATIM_WITH_TIMESTAMP,
 				WantPagingHint: true,
 				Filter: &logs.LogFilter{
 					TimeRange: &logs.TimeRangeLogFilter{
@@ -142,7 +143,6 @@ func TestGetLogsHint(t *testing.T) {
 
 			publisher = new(testPublisher)
 			require.NoError(t, ls.GetLogs(ctx, &logs.GetLogsRequest{
-				LogFormat:      logs.LogFormat_LOG_FORMAT_VERBATIM_WITH_TIMESTAMP,
 				WantPagingHint: true,
 				Filter:         &logs.LogFilter{Limit: 100}}, publisher),
 				"GetLogs with both a limit and a hint request should work")
@@ -155,4 +155,44 @@ func TestGetLogsHint(t *testing.T) {
 			_ = want
 		})
 	}
+}
+
+func TestGetDatumLogs(t *testing.T) {
+	var (
+		ctx             = pctx.TestContext(t)
+		foundQuery      bool
+		datumMiddleware = func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				q := req.URL.Query()
+				if q := q.Get("query"); q != "" {
+					if strings.Contains(q, `datumId="12d0b112f8deea684c4530693545901608bfb088d564d3c68dddaf2a02d446f5"`) && strings.Contains(q, `datum="12d0b112f8deea684c4530693545901608bfb088d564d3c68dddaf2a02d446f5"`) {
+						foundQuery = true
+					}
+				}
+				next.ServeHTTP(rw, req)
+			})
+		}
+		fakeLoki = httptest.NewServer(datumMiddleware(&lokiutil.FakeServer{}))
+		ls       = logservice.LogService{
+			GetLokiClient: func() (*loki.Client, error) {
+				return &loki.Client{Address: fakeLoki.URL}, nil
+			},
+		}
+		publisher *testPublisher
+	)
+	defer fakeLoki.Close()
+	publisher = new(testPublisher)
+	require.NoError(t, ls.GetLogs(ctx, &logs.GetLogsRequest{
+		Query: &logs.LogQuery{
+			QueryType: &logs.LogQuery_User{
+				User: &logs.UserLogQuery{
+					UserType: &logs.UserLogQuery_Datum{
+						Datum: "12d0b112f8deea684c4530693545901608bfb088d564d3c68dddaf2a02d446f5",
+					},
+				},
+			},
+		},
+	}, publisher), "GetLogs should succeed")
+	require.True(t, foundQuery, "datum LogQL query should be found")
+
 }
