@@ -112,6 +112,657 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//private:extensions.bzl%non_module_deps": {
+      "general": {
+        "bzlTransitiveDigest": "7S8ny2ptOYThbVYONyO5bfTxSzvWHYk4ugkJy29zzn8=",
+        "usagesDigest": "U0dyDGLBJWEXdtPwyiXuae5kpvg0jjp8hY11KlqSV0M=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "com_github_bazelbuild_bazel_watcher_ibazel_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/bazelbuild/bazel-watcher/releases/download/v0.24.0/ibazel_linux_amd64",
+              "sha256": "32979dfb172e4695ed92e240ec4374d73e01efac140e74ec054aa08c1a10235b",
+              "downloaded_file_path": "ibazel",
+              "executable": true
+            }
+          },
+          "com_github_pseudomuto_protoc_gen_doc_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/protoc-gen-doc_1.5.1_linux_arm64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-doc\"])",
+              "integrity": "sha256-Fy5qGR2s7Y6zHrzZDUUjoa/6bQeQCom1SEIYI92nlv4="
+            }
+          },
+          "io_k8s_sigs_kind_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/kubernetes-sigs/kind/releases/download/v0.22.0/kind-linux-arm64",
+              "sha256": "4431805115da3b54290e3e976fe2db9a7e703f116177aace6735dfa1d8a4f3fe",
+              "executable": true,
+              "downloaded_file_path": "kind"
+            }
+          },
+          "com_github_protocolbuffers_protobuf_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-osx-x86_64.zip",
+              "build_file_content": "exports_files([\"bin/protoc\"])",
+              "integrity": "sha256-csbWsryFX/hojDt/sxKIzK/Qq1Ulb/g4LVcR7PzBH08="
+            }
+          },
+          "com_github_protocolbuffers_protobuf_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-osx-aarch_64.zip",
+              "build_file_content": "exports_files([\"bin/protoc\"])",
+              "integrity": "sha256-MgMIzhjDWVZJSHVPUXSN5BzwKk5+3wz0eoBbnThhDxY="
+            }
+          },
+          "com_github_protocolbuffers_protobuf_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-linux-aarch_64.zip",
+              "build_file_content": "exports_files([\"bin/protoc\"])",
+              "integrity": "sha256-mZdajBG4PNZcPhFRrhcUv5WavAUhrLZZv3IFJCdqsMg="
+            }
+          },
+          "com_github_yannh_kubeconform_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-darwin-amd64.tar.gz",
+              "sha256": "805bbc2ab900925be01b8e72039d3689c0a6d4f8aa4b2fad24dd1243387a2b18",
+              "build_file_content": "exports_files([\"kubeconform\"])"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-grpc-gateway-v2.18.1-darwin-arm64",
+              "integrity": "sha256-ZKcjzAiohWlQXFa2pAvIk9+xKGnbQOpx3E0anmScSq0=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-grpc-gateway"
+            }
+          },
+          "com_github_protocolbuffers_protobuf_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-linux-x86_64.zip",
+              "build_file_content": "exports_files([\"bin/protoc\"])",
+              "integrity": "sha256-7Y/Kh6EciI/tMp1qWcNMfUNhZfZiosh1JG3bGsK23VA="
+            }
+          },
+          "io_k8s_sigs_kind_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/kubernetes-sigs/kind/releases/download/v0.22.0/kind-darwin-arm64",
+              "sha256": "c8dd3b287965150ae4db668294edc48229116e95d94620c306d8fae932ee633f",
+              "executable": true,
+              "downloaded_file_path": "kind"
+            }
+          },
+          "com_github_pseudomuto_protoc_gen_doc_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/protoc-gen-doc_1.5.1_darwin_arm64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-doc\"])",
+              "integrity": "sha256-boxzfZpnpqhzo/HTfti7KgqZlvbc9nAaoQSMe9eYqvk="
+            }
+          },
+          "com_github_yannh_kubeconform_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz",
+              "sha256": "2b4ebeaa4d5ac4843cf8f7b7e66a8874252b6b71bc7cbfc4ef1cbf85acec7c07",
+              "build_file_content": "exports_files([\"kubeconform\"])"
+            }
+          },
+          "com_github_grafana_loki_loki_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/loki-darwin-arm64.zip",
+              "sha256": "dd63acd073ef5305f0f90651d75d6fe2810d5f2811ec366bf05e7545eb8aa6ff",
+              "build_file_content": "exports_files([\"loki-darwin-arm64\"])"
+            }
+          },
+          "org_uber_go_gopatch_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/uber-go/gopatch/releases/download/v0.3.0/gopatch_Darwin_arm64.tar.gz",
+              "build_file_content": "exports_files([\"gopatch\"])",
+              "sha256": "2bb3914dbf273581c34e0db0913bd99f10cbbe622849ee0d8a460dbd03f27348"
+            }
+          },
+          "sh_helm_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://get.helm.sh/helm-v3.14.2-darwin-arm64.tar.gz",
+              "build_file_content": "exports_files([\"helm\"])",
+              "sha256": "ff502fd39b06497fa3d5a51ec2ced02b9fcfdb0e9a948d315fb1b2f13ddc39fb",
+              "strip_prefix": "darwin-arm64"
+            }
+          },
+          "com_github_bazelbuild_bazel_watcher_ibazel_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/bazelbuild/bazel-watcher/releases/download/v0.24.0/ibazel_darwin_amd64",
+              "sha256": "354bab8a58e81d7c8ba0df50799d14d40f56e57323129c94a983b39b755a9d40",
+              "downloaded_file_path": "ibazel",
+              "executable": true
+            }
+          },
+          "org_uber_go_gopatch_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/uber-go/gopatch/releases/download/v0.3.0/gopatch_Linux_arm64.tar.gz",
+              "build_file_content": "exports_files([\"gopatch\"])",
+              "sha256": "2f73999527945dda74323dddf991442a52fececd4ff7f810821ef46dcf33e3ad"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-grpc-gateway-v2.18.1-darwin-x86_64",
+              "integrity": "sha256-yeFzNDsIHqcj7A+k6FfUcJL3tWag2+0vGeKzYabh9/k=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-grpc-gateway"
+            }
+          },
+          "io_k8s_sigs_kind_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/kubernetes-sigs/kind/releases/download/v0.22.0/kind-darwin-amd64",
+              "sha256": "28a9f7ad7fd77922c639e21c034d0f989b33402693f4f842099cd9185b144d20",
+              "executable": true,
+              "downloaded_file_path": "kind"
+            }
+          },
+          "sh_helm_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://get.helm.sh/helm-v3.14.2-darwin-amd64.tar.gz",
+              "build_file_content": "exports_files([\"helm\"])",
+              "sha256": "64c633ae194bde77b7e7b7936a2814a7417817dc8b7bb7d270bd24a7a17b8d12",
+              "strip_prefix": "darwin-amd64"
+            }
+          },
+          "com_github_yelp_dumb_init_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64",
+              "integrity": "sha256-6HS1XzJ5ykFBXSkMUSp7qdCPmAQbKK58KssZpUXxxN8=",
+              "executable": true,
+              "downloaded_file_path": "dumb-init"
+            }
+          },
+          "com_github_containers_skopeo_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/tgolsson/skopeo-binary/releases/download/v1.14.2/skopeo-darwin-amd64",
+              "sha256": "5a82082f439508255fd2588e1aecbe9b61bf5ad62442cde2bab5d3ba665ad63f",
+              "executable": true,
+              "downloaded_file_path": "skopeo"
+            }
+          },
+          "com_github_grafana_loki_loki_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/loki-linux-amd64.zip",
+              "sha256": "f9c577d54e35e5f46b1a9d0e0788299a0c1e69975ee999d27c3dc711942cc973",
+              "build_file_content": "exports_files([\"loki-linux-amd64\"])"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-grpc-gateway-v2.18.1-linux-x86_64",
+              "integrity": "sha256-PCEXHYgPROUCI6NBXYHMPjWaxANgpYqrw6bXMl1168k=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-grpc-gateway"
+            }
+          },
+          "com_github_grafana_loki_logcli_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/logcli-darwin-amd64.zip",
+              "sha256": "f2c8583460e86fd8ba07cd055340b9f7432cf8df05d5afd333f6277dc420b009",
+              "build_file_content": "exports_files([\"logcli-darwin-amd64\"])"
+            }
+          },
+          "com_github_yannh_kubeconform_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-arm64.tar.gz",
+              "sha256": "582a8a3eb3c33feb065928728ddac6e544c4f0b1234fd78fc1e4c4175a422b22",
+              "build_file_content": "exports_files([\"kubeconform\"])"
+            }
+          },
+          "com_github_protocolbuffers_protobuf_go_protoc_gen_go_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.31.0/protoc-gen-go.v1.31.0.linux.arm64.tar.gz",
+              "sha256": "7963f59b873680b90e61c3be94bfe35e4731789516fc7377ead1be652212fcb1",
+              "build_file_content": "exports_files([\"protoc-gen-go\"])"
+            }
+          },
+          "io_k8s_sigs_kind_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/kubernetes-sigs/kind/releases/download/v0.22.0/kind-linux-amd64",
+              "sha256": "e4264d7ee07ca642fe52818d7c0ed188b193c214889dd055c929dbcb968d1f62",
+              "executable": true,
+              "downloaded_file_path": "kind"
+            }
+          },
+          "com_github_grafana_loki_logcli_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/logcli-linux-amd64.zip",
+              "sha256": "8fe59a3b2f83c02920f29251a97ad1f6d4a83a8bbbc20097b73fb839d946cb75",
+              "build_file_content": "exports_files([\"logcli-linux-amd64\"])"
+            }
+          },
+          "com_github_yannh_kubeconform_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-darwin-arm64.tar.gz",
+              "sha256": "95f9097e54c2c1abe9099d0fedc57a2d5c674b2e32231b901a6e60411899afdd",
+              "build_file_content": "exports_files([\"kubeconform\"])"
+            }
+          },
+          "sh_helm_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz",
+              "build_file_content": "exports_files([\"helm\"])",
+              "sha256": "0885a501d586c1e949e9b113bf3fb3290b0bbf74db9444a1d8c2723a143006a5",
+              "strip_prefix": "linux-amd64"
+            }
+          },
+          "io_k8s_dl_kubectl_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://dl.k8s.io/release/v1.29.2/bin/darwin/arm64/kubectl",
+              "sha256": "ce030f86625df96560402573d86d4e6f4b8b956ca3e3b9df57cb8ccf2b9a540c",
+              "executable": true,
+              "downloaded_file_path": "kubectl"
+            }
+          },
+          "com_github_grafana_loki_logcli_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/logcli-linux-arm64.zip",
+              "sha256": "e2c3cb728402087cadc120e190d617db8e0b39eb21bbff73f0d040e535822ca8",
+              "build_file_content": "exports_files([\"logcli-linux-arm64\"])"
+            }
+          },
+          "com_github_protocolbuffers_protobuf_go_protoc_gen_go_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.31.0/protoc-gen-go.v1.31.0.darwin.arm64.tar.gz",
+              "sha256": "c01ab747f9decfb9bc300c8506a8e741d35dc45860cbf3950c752572129b2139",
+              "build_file_content": "exports_files([\"protoc-gen-go\"])"
+            }
+          },
+          "com_github_protocolbuffers_protobuf_go_protoc_gen_go_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.31.0/protoc-gen-go.v1.31.0.darwin.amd64.tar.gz",
+              "sha256": "7890e2790dd68b181b1f6c33f306073e0abda3e7f360548e0b5ccb5fc20485a5",
+              "build_file_content": "exports_files([\"protoc-gen-go\"])"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_openapiv2_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-openapiv2-v2.18.1-linux-arm64",
+              "integrity": "sha256-0+TNVOGyBSxx6+Uikbt4sI6SJ7xTYfKdyzy5SRL23v0=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-openapiv2"
+            }
+          },
+          "org_uber_go_gopatch_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/uber-go/gopatch/releases/download/v0.3.0/gopatch_Linux_x86_64.tar.gz",
+              "build_file_content": "exports_files([\"gopatch\"])",
+              "sha256": "34f12f161209ce91010236a3781a7c90b3a391377f69be7376cce02586a71140"
+            }
+          },
+          "io_k8s_dl_kubectl_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://dl.k8s.io/release/v1.29.2/bin/linux/arm64/kubectl",
+              "sha256": "3507ecb4224cf05ae2151a98d4932253624e7762159936d5347b19fe037655ca",
+              "executable": true,
+              "downloaded_file_path": "kubectl"
+            }
+          },
+          "com_github_containers_skopeo_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/tgolsson/skopeo-binary/releases/download/v1.14.2/skopeo-linux-amd64",
+              "sha256": "51218f93a2b079e36a36f7fbe2d2d86778be0a6947653031b4f9e254e2469224",
+              "executable": true,
+              "downloaded_file_path": "skopeo"
+            }
+          },
+          "com_github_grafana_loki_logcli_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/logcli-darwin-arm64.zip",
+              "sha256": "81dafec9d6357fa3303bc3d913df45e11a364dbc2577fa6b948f2bd0620ab565",
+              "build_file_content": "exports_files([\"logcli-darwin-arm64\"])"
+            }
+          },
+          "com_github_yelp_dumb_init_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_aarch64",
+              "integrity": "sha256-t9ZI+XFUqZxTm2PFWXnNKfAF+IQw+zgwB/40WDQLeV4=",
+              "executable": true,
+              "downloaded_file_path": "dumb-init"
+            }
+          },
+          "com_github_grafana_loki_loki_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/loki-darwin-amd64.zip",
+              "sha256": "ab18da94a900edcda0bee6b59d10f385fd47486282ebf08accc7adb012edd93e",
+              "build_file_content": "exports_files([\"loki-darwin-amd64\"])"
+            }
+          },
+          "com_github_bazelbuild_bazel_watcher_ibazel_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/bazelbuild/bazel-watcher/releases/download/v0.24.0/ibazel_darwin_arm64",
+              "sha256": "3af24483cd7afd6155711acc3e97b36dd408710c8773ebab45729c139cfa2bc4",
+              "downloaded_file_path": "ibazel",
+              "executable": true
+            }
+          },
+          "com_github_bufbuild_protoc_gen_validate_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/bufbuild/protoc-gen-validate/releases/download/v1.0.2/protoc-gen-validate_1.0.2_linux_arm64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-validate-go\"])",
+              "integrity": "sha256-kPUsHhhnC+8DdiffEJuyDiTWti7FTIMVBPB0PQLi+sI="
+            }
+          },
+          "org_uber_go_gopatch_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/uber-go/gopatch/releases/download/v0.3.0/gopatch_Darwin_x86_64.tar.gz",
+              "build_file_content": "exports_files([\"gopatch\"])",
+              "sha256": "b34750977ce6802c2ade0c7c302c79d065b86eb9e09bca86fa6f245b9d3fabe3"
+            }
+          },
+          "com_github_kubernetes_sigs_metrics_server_helm_chart": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/kubernetes-sigs/metrics-server/releases/download/metrics-server-helm-chart-3.11.0/metrics-server-3.11.0.tgz",
+              "sha256": "e7cba5a2d7e2b0949b3ea1aa48fc3780b71eba17e1edccc8273f5da67048164b",
+              "downloaded_file_path": "metrics-server.tgz"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_openapiv2_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-openapiv2-v2.18.1-linux-x86_64",
+              "integrity": "sha256-ABA8GJOn6widP5Ybn2QmN5l8rLizezUhomHlCPw+sE4=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-openapiv2"
+            }
+          },
+          "com_github_containers_skopeo_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/tgolsson/skopeo-binary/releases/download/v1.14.2/skopeo-darwin-arm64",
+              "sha256": "77a31136eaa04643120b4999e526da35735e01ccc80f1c97752a33b3fed64547",
+              "executable": true,
+              "downloaded_file_path": "skopeo"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_openapiv2_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-openapiv2-v2.18.1-darwin-x86_64",
+              "integrity": "sha256-eHoFTKQC5E3iYmvhoglL/0QKA6m0UrnKxFn12+22jEw=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-openapiv2"
+            }
+          },
+          "sh_helm_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://get.helm.sh/helm-v3.14.2-linux-arm64.tar.gz",
+              "build_file_content": "exports_files([\"helm\"])",
+              "sha256": "c65d6a9557bb359abc2c0d26670de850b52327dc3976ad6f9e14c298ea3e1b61",
+              "strip_prefix": "linux-arm64"
+            }
+          },
+          "com_github_grafana_loki_loki_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grafana/loki/releases/download/v2.6.1/loki-linux-arm64.zip",
+              "sha256": "8679a7a6260ae67bdc50d50ba51cfa2817b6aba9ededf63b62dc8670552507a1",
+              "build_file_content": "exports_files([\"loki-linux-arm64\"])"
+            }
+          },
+          "com_github_bufbuild_protoc_gen_validate_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/bufbuild/protoc-gen-validate/releases/download/v1.0.2/protoc-gen-validate_1.0.2_darwin_amd64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-validate-go\"])",
+              "integrity": "sha256-CPPaRgwsEOlkgW0acOVctL4aLQe1wRpNbQEMXzr3QtQ="
+            }
+          },
+          "com_github_bazelbuild_bazel_watcher_ibazel_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/bazelbuild/bazel-watcher/releases/download/v0.24.0/ibazel_linux_arm64",
+              "sha256": "90aa01f1473650d2587c8c353ecb65c1bc748e5e9bf7bb45716ec213bc0987e6",
+              "downloaded_file_path": "ibazel",
+              "executable": true
+            }
+          },
+          "com_github_containers_skopeo_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/tgolsson/skopeo-binary/releases/download/v1.14.2/skopeo-linux-arm64",
+              "sha256": "364c46085de31edf4b312f13587442f4eade1f181bc5a9ea2ab2ffab5b575916",
+              "executable": true,
+              "downloaded_file_path": "skopeo"
+            }
+          },
+          "com_github_protocolbuffers_protobuf_go_protoc_gen_go_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.31.0/protoc-gen-go.v1.31.0.linux.amd64.tar.gz",
+              "sha256": "04414c31a3af6f908d4359ff12a02f7ef864417978e303ccc62053af536ae13c",
+              "build_file_content": "exports_files([\"protoc-gen-go\"])"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_ts_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts/releases/download/v1.1.2/protoc-gen-grpc-gateway-ts_1.1.2_Darwin_arm64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-grpc-gateway-ts\"])",
+              "sha256": "de4aa0ae3734ac62737a982b39a7194f7ca4925c49f282e7570f0ab6597ba532"
+            }
+          },
+          "io_k8s_dl_kubectl_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl",
+              "sha256": "7816d067740f47f949be826ac76943167b7b3a38c4f0c18b902fffa8779a5afa",
+              "executable": true,
+              "downloaded_file_path": "kubectl"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_ts_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts/releases/download/v1.1.2/protoc-gen-grpc-gateway-ts_1.1.2_Darwin_amd64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-grpc-gateway-ts\"])",
+              "sha256": "32ccc4ac6ec42b183a4ae806dac628daa47e1eb9dd35356f72f07ffc12967357"
+            }
+          },
+          "com_github_pseudomuto_protoc_gen_doc_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/protoc-gen-doc_1.5.1_linux_amd64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-doc\"])",
+              "integrity": "sha256-R81ysH5tqzQI1oamXTfTpqthbafYtWSyvSopY6crcv0="
+            }
+          },
+          "com_github_bufbuild_protoc_gen_validate_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/bufbuild/protoc-gen-validate/releases/download/v1.0.2/protoc-gen-validate_1.0.2_linux_amd64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-validate-go\"])",
+              "integrity": "sha256-XVMR6B95Kben+O1jY8hfg6Jbdw7gDzvUUCSYuR5tO3E="
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_ts_x86_64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts/releases/download/v1.1.2/protoc-gen-grpc-gateway-ts_1.1.2_Linux_amd64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-grpc-gateway-ts\"])",
+              "sha256": "94c348e2554d8c76d10bb48439e5e015c0da54aae46a87adca44527c737ea341"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_ts_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts/releases/download/v1.1.2/protoc-gen-grpc-gateway-ts_1.1.2_Linux_arm64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-grpc-gateway-ts\"])",
+              "sha256": "f4a0f1f2e6cf3c92b14e5f92af3a3774e752f9ade76831a3f02568f037746042"
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_grpc_gateway_aarch64_linux": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-grpc-gateway-v2.18.1-linux-arm64",
+              "integrity": "sha256-d0Q4iffQ4eywC/lAeV+dxF2UfBLN4DwZ2MW/OSYkDuc=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-grpc-gateway"
+            }
+          },
+          "io_k8s_dl_kubectl_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://dl.k8s.io/release/v1.29.2/bin/darwin/amd64/kubectl",
+              "sha256": "bb04d9450d9c9fa120956c5cc7c8dfaa700297038ff9c941741e730b02bbd1f3",
+              "executable": true,
+              "downloaded_file_path": "kubectl"
+            }
+          },
+          "com_github_bufbuild_protoc_gen_validate_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/bufbuild/protoc-gen-validate/releases/download/v1.0.2/protoc-gen-validate_1.0.2_darwin_arm64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-validate-go\"])",
+              "integrity": "sha256-CtoZYRgLAU26WIkDDV+1Row6H4l0PcbN9TRG56vbVDU="
+            }
+          },
+          "com_github_pseudomuto_protoc_gen_doc_x86_64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "url": "https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/protoc-gen-doc_1.5.1_darwin_amd64.tar.gz",
+              "build_file_content": "exports_files([\"protoc-gen-doc\"])",
+              "integrity": "sha256-9Cnlpd3Yhr+2gmXy+SwcalCXgLetyveos76UPyjhRLo="
+            }
+          },
+          "com_github_grpc_ecosystem_grpc_gateway_protoc_gen_openapiv2_aarch64_macos": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_file",
+            "attributes": {
+              "url": "https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v2.18.1/protoc-gen-openapiv2-v2.18.1-darwin-arm64",
+              "integrity": "sha256-QdkMfGznadc2KMO0ZZ8q9gQLcAp87nkdG2dRyrQ+ClE=",
+              "executable": true,
+              "downloaded_file_path": "protoc-gen-openapiv2"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
     "@@apple_support~//crosstool:setup.bzl%apple_cc_configure_extension": {
       "general": {
         "bzlTransitiveDigest": "PjIds3feoYE8SGbbIq2SFTZy3zmxeO2tQevJZNDo7iY=",
@@ -1270,9 +1921,9 @@
     "@@rules_python~//python/extensions:pip.bzl%pip": {
       "os:osx,arch:aarch64": {
         "bzlTransitiveDigest": "afHajMeH71LLiG0fDmv+c3VsLfzb6QPVTx2jULYgJ0o=",
-        "usagesDigest": "L2mXr9WcPVJShWqYvju/96/yNODgUWXHS3E5QMcjj3M=",
+        "usagesDigest": "Pt8RApidnLgfimIACUPRmL+RVLd1FyGZpBZDVmpczLc=",
         "recordedFileInputs": {
-          "@@//jupyter-extension/requirements-dev-lock-darwin.txt": "c75c9089bfaa0218e43621a93305f6985fc2293e6f426d86158e7a9d0c7b5cf2",
+          "@@//jupyter-extension/requirements-dev-lock.txt": "6fd28af9518be4cc7ffba4314537716b307250945a96f457194fbbfc27c05522",
           "@@//jupyter-extension/requirements-lock.txt": "c7d161bdc9b7ec082b39d7c571a064623b22af73bf2d54efeb599aee1dd72471",
           "@@rules_python~//tools/publish/requirements_darwin.txt": "a29d72a09b755c284377ca1bb4ae1bea27ef8b01d575b40e21a777e53b513381"
         },
@@ -1413,6 +2064,19 @@
               "quiet": true,
               "repo": "jupyter-pip-requirements-dev_39",
               "requirement": "asttokens==2.4.1     --hash=sha256:051ed49c3dcae8913ea7cd08e46a606dba30b79993209636c4875bc1d637bc24     --hash=sha256:b03869718ba9a6eb027e134bfdf69f38a236d681c83c160d510768af11254ba0",
+              "timeout": 600
+            }
+          },
+          "jupyter-pip-requirements-dev_39_jeepney": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@jupyter-pip-requirements-dev//{name}:{target}",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "jupyter-pip-requirements-dev_39",
+              "requirement": "jeepney==0.8.0     --hash=sha256:5efe48d255973902f6badc3ce55e2aa6c5c3b3bc642059ef3a91247bcfcc5806     --hash=sha256:c0a454ad016ca575060802ee4d590dd912e35c122fa04e70306de3d076cce755",
               "timeout": 600
             }
           },
@@ -1938,6 +2602,19 @@
               "quiet": true,
               "repo": "jupyter-pip-requirements-dev_39",
               "requirement": "six==1.16.0     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254",
+              "timeout": 600
+            }
+          },
+          "jupyter-pip-requirements-dev_39_secretstorage": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@jupyter-pip-requirements-dev//{name}:{target}",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "jupyter-pip-requirements-dev_39",
+              "requirement": "secretstorage==3.3.3     --hash=sha256:2403533ef369eca6d2ba81718576c5e0f564d5cca1b58f73a8b23e7d4eeebd77     --hash=sha256:f356e6628222568e3af06f2eba8df495efa13b3b63081dafd4f7d9a7b7bc9f99",
               "timeout": 600
             }
           },
@@ -3571,6 +4248,7 @@
                 "click": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_click\",\"version\":\"3.9\"}]",
                 "colorama": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_colorama\",\"version\":\"3.9\"}]",
                 "comm": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_comm\",\"version\":\"3.9\"}]",
+                "cryptography": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_cryptography\",\"version\":\"3.9\"}]",
                 "debugpy": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_debugpy\",\"version\":\"3.9\"}]",
                 "decorator": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_decorator\",\"version\":\"3.9\"}]",
                 "defusedxml": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_defusedxml\",\"version\":\"3.9\"}]",
@@ -3593,6 +4271,7 @@
                 "isoduration": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_isoduration\",\"version\":\"3.9\"}]",
                 "jaraco_classes": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_jaraco_classes\",\"version\":\"3.9\"}]",
                 "jedi": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_jedi\",\"version\":\"3.9\"}]",
+                "jeepney": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_jeepney\",\"version\":\"3.9\"}]",
                 "jinja2": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_jinja2\",\"version\":\"3.9\"}]",
                 "json5": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_json5\",\"version\":\"3.9\"}]",
                 "jsonpointer": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_jsonpointer\",\"version\":\"3.9\"}]",
@@ -3655,6 +4334,7 @@
                 "rfc3986": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_rfc3986\",\"version\":\"3.9\"}]",
                 "rfc3986_validator": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_rfc3986_validator\",\"version\":\"3.9\"}]",
                 "rpds_py": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_rpds_py\",\"version\":\"3.9\"}]",
+                "secretstorage": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_secretstorage\",\"version\":\"3.9\"}]",
                 "send2trash": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_send2trash\",\"version\":\"3.9\"}]",
                 "setuptools": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_setuptools\",\"version\":\"3.9\"}]",
                 "six": "[{\"config_setting\":\"@@rules_python~//python/config_settings:is_python_3.9\",\"extra_targets\":[],\"repo\":\"jupyter-pip-requirements-dev_39_six\",\"version\":\"3.9\"}]",
@@ -4198,6 +4878,19 @@
               "quiet": true,
               "repo": "jupyter-pip-requirements-dev_39",
               "requirement": "jaraco-classes==3.3.1     --hash=sha256:86b534de565381f6b3c1c830d13f931d7be1a75f0081c57dff615578676e2206     --hash=sha256:cb28a5ebda8bc47d8c8015307d93163464f9f2b91ab4006e09ff0ce07e8bfb30",
+              "timeout": 600
+            }
+          },
+          "jupyter-pip-requirements-dev_39_cryptography": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@jupyter-pip-requirements-dev//{name}:{target}",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "jupyter-pip-requirements-dev_39",
+              "requirement": "cryptography==42.0.8     --hash=sha256:013629ae70b40af70c9a7a5db40abe5d9054e6f4380e50ce769947b73bf3caad     --hash=sha256:2346b911eb349ab547076f47f2e035fc8ff2c02380a7cbbf8d87114fa0f1c583     --hash=sha256:2f66d9cd9147ee495a8374a45ca445819f8929a3efcd2e3df6428e46c3cbb10b     --hash=sha256:2f88d197e66c65be5e42cd72e5c18afbfae3f741742070e3019ac8f4ac57262c     --hash=sha256:31f721658a29331f895a5a54e7e82075554ccfb8b163a18719d342f5ffe5ecb1     --hash=sha256:343728aac38decfdeecf55ecab3264b015be68fc2816ca800db649607aeee648     --hash=sha256:5226d5d21ab681f432a9c1cf8b658c0cb02533eece706b155e5fbd8a0cdd3949     --hash=sha256:57080dee41209e556a9a4ce60d229244f7a66ef52750f813bfbe18959770cfba     --hash=sha256:5a94eccb2a81a309806027e1670a358b99b8fe8bfe9f8d329f27d72c094dde8c     --hash=sha256:6b7c4f03ce01afd3b76cf69a5455caa9cfa3de8c8f493e0d3ab7d20611c8dae9     --hash=sha256:7016f837e15b0a1c119d27ecd89b3515f01f90a8615ed5e9427e30d9cdbfed3d     --hash=sha256:81884c4d096c272f00aeb1f11cf62ccd39763581645b0812e99a91505fa48e0c     --hash=sha256:81d8a521705787afe7a18d5bfb47ea9d9cc068206270aad0b96a725022e18d2e     --hash=sha256:8d09d05439ce7baa8e9e95b07ec5b6c886f548deb7e0f69ef25f64b3bce842f2     --hash=sha256:961e61cefdcb06e0c6d7e3a1b22ebe8b996eb2bf50614e89384be54c48c6b63d     --hash=sha256:9c0c1716c8447ee7dbf08d6db2e5c41c688544c61074b54fc4564196f55c25a7     --hash=sha256:a0608251135d0e03111152e41f0cc2392d1e74e35703960d4190b2e0f4ca9c70     --hash=sha256:a0c5b2b0585b6af82d7e385f55a8bc568abff8923af147ee3c07bd8b42cda8b2     --hash=sha256:ad803773e9df0b92e0a817d22fd8a3675493f690b96130a5e24f1b8fabbea9c7     --hash=sha256:b297f90c5723d04bcc8265fc2a0f86d4ea2e0f7ab4b6994459548d3a6b992a14     --hash=sha256:ba4f0a211697362e89ad822e667d8d340b4d8d55fae72cdd619389fb5912eefe     --hash=sha256:c4783183f7cb757b73b2ae9aed6599b96338eb957233c58ca8f49a49cc32fd5e     --hash=sha256:c9bb2ae11bfbab395bdd072985abde58ea9860ed84e59dbc0463a5d0159f5b71     --hash=sha256:cafb92b2bc622cd1aa6a1dce4b93307792633f4c5fe1f46c6b97cf67073ec961     --hash=sha256:d45b940883a03e19e944456a558b67a41160e367a719833c53de6911cabba2b7     --hash=sha256:dc0fdf6787f37b1c6b08e6dfc892d9d068b5bdb671198c72072828b80bd5fe4c     --hash=sha256:dea567d1b0e8bc5764b9443858b673b734100c2871dc93163f58c46a97a83d28     --hash=sha256:dec9b018df185f08483f294cae6ccac29e7a6e0678996587363dc352dc65c842     --hash=sha256:e3ec3672626e1b9e55afd0df6d774ff0e953452886e06e0f1eb7eb0c832e8902     --hash=sha256:e599b53fd95357d92304510fb7bda8523ed1f79ca98dce2f43c115950aa78801     --hash=sha256:fa76fbb7596cc5839320000cdd5d0955313696d9511debab7ee7278fc8b5c84a     --hash=sha256:fff12c88a672ab9c9c1cf7b0c80e3ad9e2ebd9d828d955c126be4fd3e5578c9e",
               "timeout": 600
             }
           },
