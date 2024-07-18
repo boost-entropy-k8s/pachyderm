@@ -514,6 +514,8 @@ func (x *PipelineInfo_Details) MarshalLogObject(enc zapcore.ObjectEncoder) error
 	enc.AddObject("parallelism_spec", x.ParallelismSpec)
 	enc.AddObject("egress", x.Egress)
 	protoextensions.AddTimestamp(enc, "created_at", x.CreatedAt)
+	protoextensions.AddTimestamp(enc, "updated_at", x.UpdatedAt)
+	enc.AddString("created_by", x.CreatedBy)
 	enc.AddString("recent_error", x.RecentError)
 	enc.AddInt64("workers_requested", x.WorkersRequested)
 	enc.AddInt64("workers_available", x.WorkersAvailable)
@@ -1246,6 +1248,7 @@ func (x *CreatePipelineTransaction) MarshalLogObject(enc zapcore.ObjectEncoder) 
 	enc.AddObject("create_pipeline_request", x.CreatePipelineRequest)
 	enc.AddString("user_json", x.UserJson)
 	enc.AddString("effective_json", x.EffectiveJson)
+	enc.AddString("created_by", x.CreatedBy)
 	return nil
 }
 

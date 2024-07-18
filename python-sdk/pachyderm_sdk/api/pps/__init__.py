@@ -581,6 +581,8 @@ class PipelineInfoDetails(betterproto.Message):
     parallelism_spec: "ParallelismSpec" = betterproto.message_field(3)
     egress: "Egress" = betterproto.message_field(4)
     created_at: datetime = betterproto.message_field(5)
+    updated_at: datetime = betterproto.message_field(39)
+    created_by: str = betterproto.string_field(40)
     recent_error: str = betterproto.string_field(6)
     workers_requested: int = betterproto.int64_field(7)
     workers_available: int = betterproto.int64_field(8)
@@ -1285,6 +1287,7 @@ class CreatePipelineTransaction(betterproto.Message):
     create_pipeline_request: "CreatePipelineRequest" = betterproto.message_field(1)
     user_json: str = betterproto.string_field(2)
     effective_json: str = betterproto.string_field(3)
+    created_by: str = betterproto.string_field(4)
 
 
 @dataclass(eq=False, repr=False)

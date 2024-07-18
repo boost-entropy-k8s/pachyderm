@@ -331,6 +331,8 @@ export type PipelineInfoDetails = {
   parallelismSpec?: ParallelismSpec
   egress?: Egress
   createdAt?: GoogleProtobufTimestamp.Timestamp
+  updatedAt?: GoogleProtobufTimestamp.Timestamp
+  createdBy?: string
   recentError?: string
   workersRequested?: string
   workersAvailable?: string
@@ -738,6 +740,7 @@ export type CreatePipelineTransaction = {
   createPipelineRequest?: CreatePipelineRequest
   userJson?: string
   effectiveJson?: string
+  createdBy?: string
 }
 
 export type ProjectDefaults = {
