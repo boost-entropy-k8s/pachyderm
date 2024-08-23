@@ -57,6 +57,7 @@ import (
 	"github.com/pachyderm/pachyderm/v2/src/pfs"
 	"github.com/pachyderm/pachyderm/v2/src/pps"
 	pfsserver "github.com/pachyderm/pachyderm/v2/src/server/pfs"
+	pfspretty "github.com/pachyderm/pachyderm/v2/src/server/pfs/pretty"
 	"github.com/pachyderm/pachyderm/v2/src/server/pfs/server"
 )
 
@@ -4398,53 +4399,6 @@ func TestApplyWriteOrder(t *testing.T) {
 	require.Equal(t, 0, len(fileInfos))
 }
 
-func TestOverwrite(t *testing.T) {
-	// TODO(2.0 optional): Implement put file split.
-	t.Skip("Put file split not implemented in V2")
-	//		//  env := testpachd.NewRealEnv(t, dockertestenv.NewTestDBConfig(t).PachConfigOption)
-	//
-	//	if testing.Short() {
-	//		t.Skip("Skipping integration tests in short mode")
-	//	}
-	//
-	//	repo := "test"
-	//	require.NoError(t, env.PachClient.CreateRepo(pfs.DefaultProjectName,repo))
-	//
-	//	// Write foo
-	//	_, err := env.PachClient.StartProjectCommit(pfs.DefaultProjectName,repo, "master")
-	//	require.NoError(t, err)
-	//	_, err = env.PachClient.PutFile(repo, "master", "file1", strings.NewReader("foo"))
-	//	require.NoError(t, err)
-	//	_, err = env.PachClient.PutFileSplit(repo, "master", "file2", pfs.Delimiter_LINE, 0, 0, 0, false, strings.NewReader("foo\nbar\nbuz\n"))
-	//	require.NoError(t, err)
-	//	_, err = env.PachClient.PutFileSplit(repo, "master", "file3", pfs.Delimiter_LINE, 0, 0, 0, false, strings.NewReader("foo\nbar\nbuz\n"))
-	//	require.NoError(t, err)
-	//	require.NoError(t, finishCommit(env.PachClient, repo, "master"))
-	//	_, err = env.PachClient.StartProjectCommit(pfs.DefaultProjectName,repo, "master")
-	//	require.NoError(t, err)
-	//	_, err = env.PachClient.PutFile(repo, "master", "file1", strings.NewReader("bar"))
-	//	require.NoError(t, err)
-	//	require.NoError(t, env.PachClient.PutFile(repo, "master", "file2", strings.NewReader("buzz")))
-	//	require.NoError(t, err)
-	//	_, err = env.PachClient.PutFileSplit(repo, "master", "file3", pfs.Delimiter_LINE, 0, 0, 0, true, strings.NewReader("0\n1\n2\n"))
-	//	require.NoError(t, err)
-	//	require.NoError(t, finishCommit(env.PachClient, repo, "master"))
-	//	var buffer bytes.Buffer
-	//	require.NoError(t, env.PachClient.GetFile(repo, "master", "file1", &buffer))
-	//	require.Equal(t, "bar", buffer.String())
-	//	buffer.Reset()
-	//	require.NoError(t, env.PachClient.GetFile(repo, "master", "file2", &buffer))
-	//	require.Equal(t, "buzz", buffer.String())
-	//	fileInfos, err := env.PachClient.ListFileAll(repo, "master", "file3")
-	//	require.NoError(t, err)
-	//	require.Equal(t, 3, len(fileInfos))
-	//	for i := 0; i < 3; i++ {
-	//		buffer.Reset()
-	//		require.NoError(t, env.PachClient.GetFile(repo, "master", fmt.Sprintf("file3/%016x", i), &buffer))
-	//		require.Equal(t, fmt.Sprintf("%d\n", i), buffer.String())
-	//	}
-}
-
 func TestFindCommits(t *testing.T) {
 	ctx, cf := context.WithTimeout(pctx.TestContext(t), time.Minute)
 	defer cf()
@@ -7711,4 +7665,83 @@ func TestForgetRPCNoBranchHead(t *testing.T) {
 	// an error is raised when branch head is moved to a forgotten commit
 	err = env.PachClient.CreateBranch(pfs.DefaultProjectName, "out", "master", "master", commitToForget.Id, []*pfs.Branch{client.NewBranch(pfs.DefaultProjectName, "in", "master")})
 	require.Equal(t, "list branch in transaction: for each branch: the branch head cannot be a forgotten commit", err.Error())
+}
+
+func TestManyFilesSingleCommit(t *testing.T) {
+	t.Parallel()
+	c := pachd.NewTestPachd(t)
+
+	// create repos
+	dataRepo := tu.UniqueString("TestManyFilesSingleCommit_data")
+	require.NoError(t, c.CreateRepo(pfs.DefaultProjectName, dataRepo))
+	dataCommit := client.NewCommit(pfs.DefaultProjectName, dataRepo, "master", "")
+
+	numFiles := 20000
+	_, err := c.StartCommit(pfs.DefaultProjectName, dataRepo, "master")
+	require.NoError(t, err)
+	require.NoError(t, c.WithModifyFileClient(dataCommit, func(mfc client.ModifyFile) error {
+		for i := 0; i < numFiles; i++ {
+			require.NoError(t, mfc.PutFile(fmt.Sprintf("file-%d", i), strings.NewReader(""), client.WithAppendPutFile()))
+		}
+		return nil
+	}))
+	require.NoError(t, c.FinishCommit(pfs.DefaultProjectName, dataRepo, "master", ""))
+	fileInfos, err := c.ListFileAll(dataCommit, "")
+	require.NoError(t, err)
+	require.Equal(t, numFiles, len(fileInfos))
+}
+
+func TestCommitDescription(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration tests in short mode")
+	}
+
+	t.Parallel()
+	c := pachd.NewTestPachd(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	dataRepo := tu.UniqueString("TestCommitDescription")
+	require.NoError(t, c.CreateRepo(pfs.DefaultProjectName, dataRepo))
+
+	// Test putting a message in StartCommit
+	commit, err := c.PfsAPIClient.StartCommit(ctx, &pfs.StartCommitRequest{
+		Branch:      client.NewBranch(pfs.DefaultProjectName, dataRepo, "master"),
+		Description: "test commit description in 'start commit'",
+	})
+	require.NoError(t, err)
+	require.NoError(t, c.FinishCommit(pfs.DefaultProjectName, dataRepo, "", commit.Id))
+	commitInfo, err := c.InspectCommit(pfs.DefaultProjectName, dataRepo, "", commit.Id)
+	require.NoError(t, err)
+	require.Equal(t, "test commit description in 'start commit'", commitInfo.Description)
+	require.NoError(t, pfspretty.PrintDetailedCommitInfo(os.Stdout, pfspretty.NewPrintableCommitInfo(commitInfo)))
+
+	// Test putting a message in FinishCommit
+	commit, err = c.StartCommit(pfs.DefaultProjectName, dataRepo, "master")
+	require.NoError(t, err)
+	_, err = c.PfsAPIClient.FinishCommit(ctx, &pfs.FinishCommitRequest{
+		Commit:      commit,
+		Description: "test commit description in 'finish commit'",
+	})
+	require.NoError(t, err)
+	commitInfo, err = c.InspectCommit(pfs.DefaultProjectName, dataRepo, "master", commit.Id)
+	require.NoError(t, err)
+	require.Equal(t, "test commit description in 'finish commit'", commitInfo.Description)
+	require.NoError(t, pfspretty.PrintDetailedCommitInfo(os.Stdout, pfspretty.NewPrintableCommitInfo(commitInfo)))
+
+	// Test overwriting a commit message
+	commit, err = c.PfsAPIClient.StartCommit(ctx, &pfs.StartCommitRequest{
+		Branch:      client.NewBranch(pfs.DefaultProjectName, dataRepo, "master"),
+		Description: "test commit description in 'start commit'",
+	})
+	require.NoError(t, err)
+	_, err = c.PfsAPIClient.FinishCommit(ctx, &pfs.FinishCommitRequest{
+		Commit:      commit,
+		Description: "test commit description in 'finish commit' that overwrites",
+	})
+	require.NoError(t, err)
+	commitInfo, err = c.InspectCommit(pfs.DefaultProjectName, dataRepo, "", commit.Id)
+	require.NoError(t, err)
+	require.Equal(t, "test commit description in 'finish commit' that overwrites", commitInfo.Description)
+	require.NoError(t, pfspretty.PrintDetailedCommitInfo(os.Stdout, pfspretty.NewPrintableCommitInfo(commitInfo)))
 }

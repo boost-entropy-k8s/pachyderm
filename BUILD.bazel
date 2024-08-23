@@ -152,6 +152,7 @@ test_suite(
     name = "privileged_tests",
     tags = ["manual"],
     tests = [
+        "//src/server/pfs/cmds:cmds_integration_test",
         "//src/server/pfs/fuse:fuse_test",
     ],
 )
@@ -170,4 +171,10 @@ test_suite(
         "//jupyter-extension:gazelle_python_manifest.test",
         "//src/proto:run_test",
     ],
+)
+
+# pnpm for running npm commands
+alias(
+    name = "pnpm",
+    actual = "@pnpm//:pnpm",
 )
