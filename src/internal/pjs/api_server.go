@@ -1,3 +1,6 @@
+// Package pjs needs to be documented.
+//
+// TODO: document
 package pjs
 
 import (
@@ -37,14 +40,6 @@ func (a *apiServer) CreateJob(ctx context.Context, request *pjs.CreateJobRequest
 	if err != nil {
 		return nil, errors.Wrap(err, "parse program id")
 	}
-	var inputs []fileset.PinnedFileset
-	for _, input := range request.Input {
-		inputID, err := fileset.ParseID(input)
-		if err != nil {
-			return nil, errors.Wrap(err, "parse input id")
-		}
-		inputs = append(inputs, fileset.PinnedFileset(*inputID))
-	}
 	var parent pjsdb.JobID
 	if request.Context != "" {
 		parent, err = a.resolveJobCtx(ctx, request.Context)
@@ -56,15 +51,32 @@ func (a *apiServer) CreateJob(ctx context.Context, request *pjs.CreateJobRequest
 	if err != nil {
 		return nil, errors.Wrap(err, "adding auth token to ctx")
 	}
+	var inputs []fileset.PinnedFileset
+	var inputHashes [][]byte
+	for i, input := range request.Input {
+		inputID, err := fileset.ParseID(input)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse input id")
+		}
+		inputs = append(inputs, fileset.PinnedFileset(*inputID))
+		hash, err := HashFileset(authedCtx, a.env.GetStorageClient(ctx), inputID.HexString())
+		if err != nil {
+			return nil, errors.Wrapf(err, "hashing input fileset: %q, (%d/%d)", inputID.HexString(), i, len(request.Input))
+		}
+		inputHashes = append(inputHashes, hash)
+	}
 	hash, err := HashFileset(authedCtx, a.env.GetStorageClient(ctx), program.HexString())
 	if err != nil {
 		return nil, errors.Wrapf(err, "hashing fileset: %q", program.HexString())
 	}
 	req := pjsdb.CreateJobRequest{
-		Parent:      parent,
-		Program:     fileset.PinnedFileset(*program),
-		ProgramHash: hash,
-		Inputs:      inputs,
+		Parent:            parent,
+		Program:           fileset.PinnedFileset(*program),
+		ProgramHash:       hash,
+		Inputs:            inputs,
+		InputHashes:       inputHashes,
+		CacheReadEnabled:  request.CacheRead,
+		CacheWriteEnabled: request.CacheWrite,
 	}
 	if err := dbutil.WithTx(ctx, a.env.DB, func(ctx context.Context, sqlTx *pachsql.Tx) error {
 		jobID, err := pjsdb.CreateJob(ctx, sqlTx, req)
@@ -170,20 +182,30 @@ func (a *apiServer) ProcessQueue(srv pjs.API_ProcessQueueServer) (retErr error) 
 			}
 			return err
 		}
-		var inputsID []fileset.ID
+		var (
+			inputsID    []fileset.ID
+			inputHashes [][]byte
+			programHash []byte
+		)
 		if err := dbutil.WithTx(ctx, a.env.DB, func(ctx context.Context, sqlTx *pachsql.Tx) error {
 			job, err := pjsdb.GetJob(ctx, sqlTx, jobID)
 			if err != nil {
 				return errors.Wrap(err, "get job")
 			}
+			programHash = job.ProgramHash
 			inputsID = job.Inputs
 			return nil
 		}, dbutil.WithReadOnly()); err != nil {
 			return errors.Wrap(err, "with tx")
 		}
 		var inputs []string
-		for _, filesetID := range inputsID {
+		for i, filesetID := range inputsID {
 			inputs = append(inputs, filesetID.HexString())
+			hash, err := HashFileset(ctx, a.env.GetStorageClient(ctx), filesetID.HexString())
+			if err != nil {
+				return errors.Wrapf(err, "hashing input fileset: %q, (%d/%d)", filesetID.HexString(), i, len(inputsID))
+			}
+			inputHashes = append(inputHashes, hash)
 		}
 		if err := srv.Send(&pjs.ProcessQueueResponse{
 			Context: hex.EncodeToString(jobCtx.Token),
@@ -209,7 +231,10 @@ func (a *apiServer) ProcessQueue(srv pjs.API_ProcessQueueServer) (retErr error) 
 			}
 		} else if out := req.GetSuccess(); out != nil {
 			if err := dbutil.WithTx(ctx, a.env.DB, func(ctx context.Context, sqlTx *pachsql.Tx) error {
-				if err := pjsdb.CompleteJob(ctx, sqlTx, jobID, out.Output); err != nil {
+				if err := pjsdb.CompleteJob(ctx, sqlTx, jobID, out.Output, pjsdb.WriteToCacheOption{
+					ProgramHash: programHash,
+					InputHashes: inputHashes,
+				}); err != nil {
 					return errors.Wrap(err, "complete job")
 				}
 				return nil
@@ -329,13 +354,9 @@ func (a *apiServer) InspectQueue(ctx context.Context, req *pjs.InspectQueueReque
 		if err != nil {
 			return errors.Wrap(err, "get queue")
 		}
-		uniquePrograms := make(map[string]struct{})
-		for _, program := range q.Programs {
-			uniquePrograms[program.HexString()] = struct{}{}
-		}
 		var programs []string
-		for k := range uniquePrograms {
-			programs = append(programs, k)
+		for _, program := range q.Programs {
+			programs = append(programs, program.HexString())
 		}
 		queueInfoDetails = &pjs.QueueInfoDetails{
 			QueueInfo: &pjs.QueueInfo{
@@ -353,6 +374,89 @@ func (a *apiServer) InspectQueue(ctx context.Context, req *pjs.InspectQueueReque
 	return &pjs.InspectQueueResponse{
 		Details: queueInfoDetails,
 	}, nil
+}
+
+func (a *apiServer) ListJob(req *pjs.ListJobRequest, srv pjs.API_ListJobServer) (err error) {
+	ctx, done := log.SpanContext(srv.Context(), "list job")
+	defer done(log.Errorp(&err))
+
+	// list all the jobs without parent
+	noParent := req.Job == nil && req.Context == ""
+
+	var id pjsdb.JobID
+	if !noParent {
+		// handle job context and request validation.
+		jid, err := a.resolveJob(ctx, req.Context, req.GetJob().GetId())
+		if err != nil {
+			return err
+		}
+		id = jid
+	}
+
+	// list jobs and stream back results.
+	var jobs []pjsdb.Job
+	if err := dbutil.WithTx(ctx, a.env.DB, func(ctx context.Context, sqlTx *pachsql.Tx) error {
+		// list job returns direct children
+		jobs, err = pjsdb.ListJobTxByFilter(ctx, sqlTx,
+			pjsdb.IterateJobsRequest{Filter: pjsdb.IterateJobsFilter{
+				Operation:  pjsdb.FilterOperationAND,
+				NullParent: noParent,
+				Parent:     id,
+			}})
+		return errors.Wrap(err, "list job in pjsdb")
+	}, dbutil.WithReadOnly()); err != nil {
+		return errors.Wrap(err, "with tx")
+	}
+	for i, job := range jobs {
+		jobInfo, err := pjsdb.ToJobInfo(job)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("to job info, iteration=%d/%d", i, len(jobs)))
+		}
+		resp := &pjs.ListJobResponse{
+			Id:   jobInfo.Job,
+			Info: jobInfo,
+			Details: &pjs.JobInfoDetails{
+				JobInfo: jobInfo,
+			},
+		}
+		if err := srv.Send(resp); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("send, iteration=%d/%d", i, len(jobs)))
+		}
+	}
+	return nil
+}
+
+func (a *apiServer) ListQueue(req *pjs.ListQueueRequest, srv pjs.API_ListQueueServer) (err error) {
+	ctx, done := log.SpanContext(srv.Context(), "list queue")
+	defer done(log.Errorp(&err))
+
+	var queues []pjsdb.Queue
+	if err := dbutil.WithTx(ctx, a.env.DB, func(ctx context.Context, sqlTx *pachsql.Tx) error {
+		queues, err = pjsdb.ListQueues(ctx, a.env.DB, pjsdb.IterateQueuesRequest{})
+		return errors.Wrap(err, "list queue in pjsdb")
+	}, dbutil.WithReadOnly()); err != nil {
+		return errors.Wrap(err, "with tx")
+	}
+	for i, queue := range queues {
+		queueInfo, err := pjsdb.ToQueueInfo(queue)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("to queue info, iteration=%d/%d", i, len(queues)))
+		}
+		resp := &pjs.ListQueueResponse{
+			Id: &pjs.Queue{
+				Id: []byte(queue.ID),
+			},
+			Info: queueInfo,
+			Details: &pjs.QueueInfoDetails{
+				QueueInfo: queueInfo,
+				Size:      int64(queue.Size),
+			},
+		}
+		if err := srv.Send(resp); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("send, iteration=%d/%d", i, len(queues)))
+		}
+	}
+	return nil
 }
 
 // resolveJobCtx returns an error annotated with a GRPC status and therefore probably shouldn't be wrapped.

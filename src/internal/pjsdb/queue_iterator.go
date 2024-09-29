@@ -20,7 +20,7 @@ const (
 				count(j.id) AS "size"
 			  FROM 
 				queues 
-			  JOIN 
+			  LEFT JOIN 
 				pjs.jobs j 
 				ON j.program_hash = queues.program_hash
               WHERE
@@ -32,7 +32,10 @@ const (
 	`
 )
 
-// TODO(Fahad): add queue filter once filter is designed.
+// IterateQueuesRequest is not properly documented.
+//
+//   - TODO(Fahad): add queue filter once filter is designed.
+//   - TODO: document.
 type IterateQueuesRequest struct {
 	IteratorConfiguration
 }
